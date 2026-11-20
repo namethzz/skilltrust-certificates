@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#112b27">
+  <title>ตรวจสอบใบรับรอง | SkillTrust Academy</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="top"><div class="wrap top-content">
+    <a class="brand" href="./"><span class="mark" aria-hidden="true">✓</span><span>SkillTrust <small>ACADEMY</small></span></a>
+    <div class="wallet-actions"><span id="network" class="network">Sepolia Testnet</span><button id="connect" class="outline">เชื่อมต่อ MetaMask</button></div>
+  </div></header>
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-copy"><div class="eyebrow">SKILLTRUST ACADEMY</div><h1>ตรวจสอบใบรับรอง<br>ดิจิทัล</h1><p>ค้นหาด้วยรหัสหรือสแกน QR Code และเทียบไฟล์ PDF กับหลักฐานบน Ethereum</p></div>
+      <div class="art" aria-hidden="true"><div class="paper"><span class="seal">✓</span><i></i><i></i><i></i></div></div>
+    </section>
+    <div class="workspace">
+      <nav aria-label="เมนูใบรับรอง">
+        <button class="nav active" data-panel="verify" aria-current="page">ตรวจสอบใบรับรอง</button>
+        <button class="nav" data-panel="dashboard">ใบรับรองของฉัน</button>
+        <button class="nav" data-panel="manage" id="manage-nav">จัดการใบรับรอง</button>
+      </nav>
+      <div class="body-column">
+        <div id="notice" class="notice" role="status" hidden></div>
+        <section class="card" id="verify">
+          <h2>ค้นหาใบรับรอง</h2>
+          <p>กรอกรหัสที่ระบุบนใบรับรองเพื่อดูสถานะการออกและการเพิกถอน</p>
+          <form id="verify-form">
+            <label for="verify-code">รหัสใบรับรอง</label>
+            <div class="search-row"><input id="verify-code" name="code" placeholder="เช่น ST-2026-001" maxlength="32" required><button class="primary">ตรวจสอบ</button></div>
+            <label for="verify-file">ไฟล์ PDF สำหรับเทียบหลักฐาน <span class="muted">(ถ้ามี)</span></label>
+            <input id="verify-file" name="pdf" type="file" accept=".pdf,application/pdf">
+          </form>
+          <p class="hint">ใช้กล้องมือถือสแกน QR บนใบรับรองเพื่อเปิดผลตรวจโดยตรง</p>
+          <div id="verify-result" class="results" aria-live="polite"></div>
+        </section>
+        <section class="card" id="dashboard" hidden>
+          <h2>ใบรับรองของฉัน</h2>
+          <p id="history-state">เชื่อมต่อ MetaMask เพื่อดูใบรับรองที่ผูกกับกระเป๋าของคุณ</p>
+          <div id="history" class="results" aria-live="polite"></div>
+          <div class="row" id="pages" hidden><button class="outline" id="previous">ก่อนหน้า</button><button class="outline" id="next">ถัดไป</button></div>
+        </section>
+        <section class="card" id="manage" hidden>
+          <h2>จัดการใบรับรอง</h2>
+          <p id="access">เชื่อมต่อ MetaMask ด้วยบัญชีผู้ดูแลหรือผู้ออกใบรับรอง</p>
+          <div class="forms" id="management" hidden>
+            <form id="course-form" data-owner hidden>
+              <h3>ลงทะเบียนหลักสูตร</h3>
+              <label>รหัสหลักสูตร<input name="code" placeholder="เช่น CLOUD-101" maxlength="32" required></label>
+              <label>ชื่อหลักสูตร<input name="title" maxlength="80" required></label>
+              <label>รายละเอียดการอบรม<textarea name="description" maxlength="400" required></textarea></label>
+              <button class="primary">บันทึกหลักสูตร</button>
+            </form>
+            <form id="issue-form">
+              <h3>ออกใบรับรอง</h3>
+              <label>รหัสใบรับรอง<input name="code" maxlength="32" required></label>
+              <label>รหัสหลักสูตร<input name="course" maxlength="32" required></label>
+              <label>Wallet ผู้รับ<input name="recipient" placeholder="0x…" required></label>
+              <label>ไฟล์ PDF ต้นฉบับ<input type="file" name="pdf" accept=".pdf,application/pdf" required></label>
+              <p class="hint">ระบบคำนวณ SHA-256 ในเบราว์เซอร์และบันทึกเฉพาะค่าแฮชของไฟล์</p>
+              <button class="primary">ออกใบรับรอง</button>
+            </form>
+            <form id="revoke-form" data-owner hidden>
+              <h3>เพิกถอนใบรับรอง</h3>
+              <label>รหัสใบรับรอง<input name="code" maxlength="32" required></label>
+              <button class="danger">เพิกถอน</button>
+            </form>
+            <form id="issuer-form" data-owner hidden>
+              <h3>กำหนดสิทธิ์ผู้ออกใบรับรอง</h3>
+              <label>Wallet<input name="account" placeholder="0x…" required></label>
+              <label>สิทธิ์<select name="allowed"><option value="yes">อนุญาต</option><option value="no">ยกเลิกสิทธิ์</option></select></label>
+              <button class="primary">บันทึกสิทธิ์</button>
+            </form>
+          </div>
+        </section>
+      </div>
+    </div>
+    <footer><span>SkillTrust Academy</span><a id="contract-link" hidden target="_blank" rel="noopener">ดู Smart Contract ↗</a></footer>
+  </main>
+</body>
+</html>
